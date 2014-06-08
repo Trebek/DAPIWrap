@@ -2,7 +2,7 @@
 # DAPIWrap: Doomworld API Wrapper
 #-------------------------------------------------------------------------------
 # Version: 0.1.0
-# Updated: 05-06-2014
+# Updated: 07-06-2014
 # Author: Alex Crawford
 # License: MIT
 #===============================================================================
@@ -34,12 +34,12 @@ http://docs.python-requests.org/en/latest/
 import random
 import requests
 
-from dawtools import (
+from dapiwtools import (
     determine_lvl_path,
     Downwad,
     SearchFilter
 )
-from dawglobs import (
+from dapiwconst import (
     A_ABOUT,
     A_DBPING,
     A_GET_ID,
