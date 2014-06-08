@@ -24,7 +24,7 @@ import requests
 import string
 import time
 
-from dawglobs import (
+from dapiwconst import (
     DL_FLORIDA,
     DL_FTP,
     DL_FTP_GERMANY,

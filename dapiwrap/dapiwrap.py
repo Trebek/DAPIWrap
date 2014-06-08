@@ -135,7 +135,7 @@ class DAPIWrap(object):
         """
         Calls the API, using the given action/parameters.
 
-        :param action: An action constant from ``dawglobs``.
+        :param action: An action constant from ``dapiwconst``.
         :param params: Any additional parameters for the action.
 
         :returns: The Doomworld API response.
