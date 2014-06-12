@@ -256,8 +256,8 @@ Download Wad Using ID
 
     daw.download.wad_id(12815, dl_folder)
 
-Download Wad Using Filename
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Download a Wad, Using a Full Path
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ::
 
     #!/usr/bin/env python
@@ -268,7 +268,7 @@ Download Wad Using Filename
 
     daw = DAPIWrap()
 
-    daw.download.filename("zdmcmp1.zip", dl_folder)
+    daw.download.file_path("levels/doom2/Ports/v-z/zdmcmp1.zip", dl_folder)
 
 Download Wad Using Wad Info
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -356,6 +356,8 @@ Getting a specific wad's full info, using an ID or filename, typically returns a
         u'votes': 2
      }
 
+Or ``None``, if no wad was found.
+
 Searching
 ---------
 
@@ -396,6 +398,8 @@ A search will yield a list of more brief info for each wad found, like so (this 
             u'votes': 1
         },
     ]
+
+Or ``[]`` (empty ``list``), if no wads were found.
 
 Downloading
 -----------

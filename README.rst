@@ -2,16 +2,21 @@
 DAPIWrap: Doomworld API Wrapper
 ===============================
 
-DAPIWrap is a fairly simple Python wrapper for the `Doomworld /idgames archive API`_. In addition to allowing you to access the API using Python, it also has a few added features, located in ``dawtools``, that aren't provided by the API, such as search filtering, and downloading functions, for downloading wads from the supported mirrors on the `Doomworld /idgames archive`_.
+**This package is still in the beta stages, so expect updates that may break things, if you're using it.**
 
-Install Using PIP_
-==================
+DAPIWrap is a fairly simple Python wrapper for the `Doomworld /idgames archive API`_. In addition to allowing you to access the API using Python, it also has a few added features, located in ``dapiwtools``, that aren't provided by the API, such as search filtering, and downloading functions, for downloading wads from the supported mirrors on the `Doomworld /idgames archive`_.
+
+Install/Uninstall with PIP_
+===========================
+
+Install
+-------
 ::
 
     pip install https://github.com/Trebek/DAPIWrap/archive/master.zip
 
-Uninstall Using PIP_
-====================
+Uninstall
+---------
 ::
 
     pip uninstall dapiwrap
@@ -19,8 +24,13 @@ Uninstall Using PIP_
 Basic Usage
 ===========
 
+These are some brief examples of how to use the functions of DAPIWrap.
+
+Getting Wad Info
+----------------
+
 Get Wad Info Using ID
----------------------
+^^^^^^^^^^^^^^^^^^^^^
 ::
 
     #!/usr/bin/env python
@@ -31,8 +41,8 @@ Get Wad Info Using ID
 
     wad_info = daw.get_id(12815)
 
-Get Wad Info Using Full Path & Filename
----------------------------------------
+Get Wad Info Using Full Path
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ::
 
     #!/usr/bin/env python
@@ -43,20 +53,11 @@ Get Wad Info Using Full Path & Filename
 
     wad_info = daw.get_file("levels/doom2/Ports/v-z/zdmcmp1.zip")
 
-Get Wad Info Using Just a Filename
-----------------------------------
-::
-
-    #!/usr/bin/env python
-
-    from dapiwrap import DAPIWrap
-
-    daw = DAPIWrap()
-
-    wad_info = daw.get_file_alt("zdmcmp1.zip")
+Searching
+---------
 
 Basic Search
-------------
+^^^^^^^^^^^^
 ::
 
     #!/usr/bin/env python
@@ -67,8 +68,30 @@ Basic Search
 
     results = daw.search("zdmcmp1")
 
+Search with Parameters & Filter
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+::
+
+    #!/usr/bin/env python
+
+    from dapiwrap import DAPIWrap
+
+    daw = DAPIWrap()
+
+    params = {
+        "type": TYPE_TITLE,
+        "sort": SORT_RATING,
+        "dir": DIRECT_DESC,
+        "filter": (FILTER_YEAR, 1995)
+    }
+
+    results = daw.search("test", params)
+
+Downloading
+-----------
+
 Download a Wad, Using it's ID
------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ::
 
     #!/usr/bin/env python
@@ -81,8 +104,8 @@ Download a Wad, Using it's ID
 
     daw.download.wad_id(12815, dl_folder)
 
-Download a Wad, Using a Filename
---------------------------------
+Download a Wad, Using a Full Path
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ::
 
     #!/usr/bin/env python
@@ -93,7 +116,7 @@ Download a Wad, Using a Filename
 
     daw = DAPIWrap()
 
-    daw.download.filename("zdmcmp1.zip", dl_folder)
+    daw.download.file_path("levels/doom2/Ports/v-z/zdmcmp1.zip", dl_folder)
 
 Typical Responses
 =================
@@ -127,6 +150,8 @@ Getting a specific wad's full info, using an ID or filename, typically returns a
         u'url': u'http://www.doomworld.com/idgames/?file=levels/doom2/s-u/test.zip',
         u'votes': 2
      }
+
+Or ``None``, if no wad was found.
 
 Searching
 ---------
@@ -168,6 +193,8 @@ A search will yield a list of more brief info for each wad found, like so (this 
             u'votes': 1
         },
     ]
+
+Or ``[]`` (empty ``list``), if no wads were found.
 
 Downloading
 -----------

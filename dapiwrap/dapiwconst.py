@@ -1,16 +1,16 @@
 #===============================================================================
 # DAPIWConst Global Constants
 #-------------------------------------------------------------------------------
-# Version: 0.1.0
-# Updated: 07-06-2014
+# Version: 0.2.0
+# Updated: 11-06-2014
 # Author: Alex Crawford
 # License: MIT
 #===============================================================================
 
 """
 This file contains all of the constants that are used by DAPIWrap and it's
-associated tools, in ``dapiwtools``. Just figured it would be easier to keep them
-all consolidated.
+associated tools, in ``dapiwtools``. I just figured it would be easier to keep 
+them all consolidated. Users can just import the ones they need.
 
 """
 
@@ -73,7 +73,7 @@ FTP_DIR_TEXAS = "pub/idgames/"
 # /idgames Paths and Game Names
 #-------------------------------------------------------------------------------
 
-# /idgames root
+# idgames root
 IDGAMES = "idgames/"
 
 # Game path names
@@ -85,7 +85,8 @@ HEXEN = "hexen"
 STRIFE = "strife"
 GAMES = [DOOM, DOOM2, HACX, HERETIC, HEXEN, STRIFE]
 
-# General purpose level paths
+# Level paths
+LVLS = "levels/%s/"
 LVLS_09 = "levels/%s/0-9/"
 LVLS_AC = "levels/%s/a-c/"
 LVLS_DF = "levels/%s/d-f/"
@@ -96,57 +97,80 @@ LVLS_PR = "levels/%s/p-r/"
 LVLS_SU = "levels/%s/s-u/"
 LVLS_VZ = "levels/%s/v-z/"
 LVLS_DEATH = "levels/%s/deathmatch/"
+LVLS_DEATH_09 = "levels/%s/deathmatch/0-9/"
+LVLS_DEATH_AC = "levels/%s/deathmatch/a-c/"
+LVLS_DEATH_DF = "levels/%s/deathmatch/d-f/"
+LVLS_DEATH_GI = "levels/%s/deathmatch/g-i/"
+LVLS_DEATH_JL = "levels/%s/deathmatch/j-l/"
+LVLS_DEATH_MO = "levels/%s/deathmatch/m-o/"
+LVLS_DEATH_PR = "levels/%s/deathmatch/p-r/"
+LVLS_DEATH_SU = "levels/%s/deathmatch/s-u/"
+LVLS_DEATH_VZ = "levels/%s/deathmatch/v-z/"
+LVLS_DEATH_MEGA = "levels/%s/deathmatch/megawads/"
+LVLS_DEATH_PORTS_09 = "levels/%s/deathmatch/Ports/0-9/"
+LVLS_DEATH_PORTS_AC = "levels/%s/deathmatch/Ports/a-c/"
+LVLS_DEATH_PORTS_DF = "levels/%s/deathmatch/Ports/d-f/"
+LVLS_DEATH_PORTS_GI = "levels/%s/deathmatch/Ports/g-i/"
+LVLS_DEATH_PORTS_JL = "levels/%s/deathmatch/Ports/j-l/"
+LVLS_DEATH_PORTS_MO = "levels/%s/deathmatch/Ports/m-o/"
+LVLS_DEATH_PORTS_PR = "levels/%s/deathmatch/Ports/p-r/"
+LVLS_DEATH_PORTS_SU = "levels/%s/deathmatch/Ports/s-u/"
+LVLS_DEATH_PORTS_VZ = "levels/%s/deathmatch/Ports/v-z/"
+LVLS_DEATH_PORTS_MEGA = "levels/%s/deathmatch/Ports/megawads/"
 LVLS_MEGA = "levels/%s/megawads/"
 LVLS_PORTS = "levels/%s/Ports/"
-
-# Doom /idgames level paths
-DOOM_LVLS_09 = "levels/doom/0-9/"
-DOOM_LVLS_AC = "levels/doom/a-c/"
-DOOM_LVLS_DF = "levels/doom/d-f/"
-DOOM_LVLS_GI = "levels/doom/g-i/"
-DOOM_LVLS_JL = "levels/doom/j-l/"
-DOOM_LVLS_MO = "levels/doom/m-o/"
-DOOM_LVLS_PR = "levels/doom/p-r/"
-DOOM_LVLS_SU = "levels/doom/s-u/"
-DOOM_LVLS_VZ = "levels/doom/v-z/"
-DOOM_LVLS_DEATH = "levels/doom/deathmatch/"
-DOOM_LVLS_MEGA = "levels/doom/megawads/"
-DOOM_LVLS_PORTS = "levels/doom/Ports/"
-DOOM_LVLS = [
-    DOOM_LVLS_09, DOOM_LVLS_AC, DOOM_LVLS_DF, DOOM_LVLS_GI,
-    DOOM_LVLS_JL, DOOM_LVLS_MO, DOOM_LVLS_PR, DOOM_LVLS_SU,
-    DOOM_LVLS_VZ
-]
-DOOM_LVLS_OTHER = [
-    DOOM_LVLS_DEATH, DOOM_LVLS_MEGA, DOOM_LVLS_PORTS
-]
-
-# Doom 2 /idgames level paths
-DOOM2_LVLS_09 = "levels/doom2/0-9/"
-DOOM2_LVLS_AC = "levels/doom2/a-c/"
-DOOM2_LVLS_DF = "levels/doom2/d-f/"
-DOOM2_LVLS_GI = "levels/doom2/g-i/"
-DOOM2_LVLS_JL = "levels/doom2/j-l/"
-DOOM2_LVLS_MO = "levels/doom2/m-o/"
-DOOM2_LVLS_PR = "levels/doom2/p-r/"
-DOOM2_LVLS_SU = "levels/doom2/s-u/"
-DOOM2_LVLS_VZ = "levels/doom2/v-z/"
-DOOM2_LVLS_DEATH = "levels/doom2/deathmatch/"
-DOOM2_LVLS_MEGA = "levels/doom2/megawads/"
-DOOM2_LVLS_PORTS = "levels/doom2/Ports/"
-DOOM2_LVLS = [
-    DOOM2_LVLS_09, DOOM2_LVLS_AC, DOOM2_LVLS_DF, DOOM2_LVLS_GI,
-    DOOM2_LVLS_JL, DOOM2_LVLS_MO, DOOM2_LVLS_PR, DOOM2_LVLS_SU,
-    DOOM2_LVLS_VZ
-]
-DOOM2_LVLS_OTHER = [
-    DOOM2_LVLS_DEATH, DOOM2_LVLS_MEGA, DOOM2_LVLS_PORTS
-]
+LVLS_PORTS_09 = "levels/%s/Ports/0-9/"
+LVLS_PORTS_AC = "levels/%s/Ports/a-c/"
+LVLS_PORTS_DF = "levels/%s/Ports/d-f/"
+LVLS_PORTS_GI = "levels/%s/Ports/g-i/"
+LVLS_PORTS_JL = "levels/%s/Ports/j-l/"
+LVLS_PORTS_MO = "levels/%s/Ports/m-o/"
+LVLS_PORTS_PR = "levels/%s/Ports/p-r/"
+LVLS_PORTS_SU = "levels/%s/Ports/s-u/"
+LVLS_PORTS_VZ = "levels/%s/Ports/v-z/"
+LVLS_PORTS_MEGA = "levels/%s/Ports/megawads/"
 
 #-------------------------------------------------------------------------------
-# Search Parameters & Filter Stuff
+# Level Path Lists
 #-------------------------------------------------------------------------------
 
+# Alphabetical paths under "levels/<GAME>/"
+LVLS_ALPHA = [
+    LVLS_09, LVLS_AC, LVLS_DF, LVLS_GI, LVLS_JL, LVLS_MO, LVLS_PR, LVLS_SU,
+    LVLS_VZ
+]
+
+# Alphabetical paths under "levels/<GAME>/deathmatch/"
+LVLS_DEATH_ALPHA = [
+    LVLS_DEATH_09, LVLS_DEATH_AC, LVLS_DEATH_DF, LVLS_DEATH_GI, LVLS_DEATH_JL,
+    LVLS_DEATH_MO, LVLS_DEATH_PR, LVLS_DEATH_SU, LVLS_DEATH_VZ
+]
+
+# Alphabetical paths under "levels/<GAME>/deathmatch/Ports/"
+LVLS_DEATH_PORTS_ALPHA = [
+    LVLS_DEATH_PORTS_09, LVLS_DEATH_PORTS_AC, LVLS_DEATH_PORTS_DF,
+    LVLS_DEATH_PORTS_GI, LVLS_DEATH_PORTS_JL, LVLS_DEATH_PORTS_MO,
+    LVLS_DEATH_PORTS_PR, LVLS_DEATH_PORTS_SU, LVLS_DEATH_PORTS_VZ
+]
+
+# Alphabetical paths under "levels/<GAME>/Ports/"
+LVLS_PORTS_ALPHA = [
+    LVLS_PORTS_09, LVLS_PORTS_AC, LVLS_PORTS_DF, LVLS_PORTS_GI, LVLS_PORTS_JL, 
+    LVLS_PORTS_MO, LVLS_PORTS_PR, LVLS_PORTS_SU, LVLS_PORTS_VZ
+]
+
+# All paths under "levels/"
+LVLS_ALL = (
+    LVLS_ALPHA + [LVLS_MEGA] + LVLS_DEATH_ALPHA + [LVLS_DEATH_MEGA] + 
+    LVLS_DEATH_PORTS_ALPHA + [LVLS_DEATH_PORTS_MEGA] + LVLS_PORTS_ALPHA + 
+    [LVLS_PORTS_MEGA]
+)
+
+#-------------------------------------------------------------------------------
+# Search Parameters
+#-------------------------------------------------------------------------------
+
+# Search types
 TYPE_AUTHOR = "author"
 TYPE_CREDITS = "credits"
 TYPE_DECRIP = "description"
@@ -156,14 +180,21 @@ TYPE_FILE = "filename"
 TYPE_TEXT = "textfile"
 TYPE_TITLE = "title"
 
+# Search sorting methods
 SORT_DATE = "date"
 SORT_FILE = "filename"
 SORT_RATING = "rating"
 SORT_SIZE = "size"
 
+# Sort direction
 DIRECT_ASC = "asc"
 DIRECT_DESC = "desc"
 
+#-------------------------------------------------------------------------------
+# Filter Stuff
+#-------------------------------------------------------------------------------
+
+# Filter names
 FILTER_DATE = "filter:date"
 FILTER_GAME = "filter:game"
 FILTER_GYR = "filter:gyr"

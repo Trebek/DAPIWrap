@@ -1,15 +1,16 @@
 #===============================================================================
 # DAPIWTools: Useful Helper Functions for DAPIWrap.
 #-------------------------------------------------------------------------------
-# Version: 0.1.0
-# Updated: 07-06-2014
+# Version: 0.2.0
+# Updated: 11-06-2014
 # Author: Alex Crawford
 # License: MIT
 #===============================================================================
 
 """
-This module contains a few useful helper classes/functions that aren't provided 
-by the Doomworld API, such as search filters, and a download interface.
+This module contains a few useful helper classes/functions used by DAPIWrap 
+that aren't provided by the Doomworld API, such as search filters, and a 
+download interface.
 
 """
 
@@ -18,11 +19,13 @@ by the Doomworld API, such as search filters, and a download interface.
 #===============================================================================
 
 import ftplib
+import gzip
+import json
 import os
 import random
 import requests
-import string
 import time
+import webbrowser
 
 from dapiwconst import (
     DL_FLORIDA,
@@ -32,8 +35,6 @@ from dapiwconst import (
     DL_FTP_TEXAS,
     DOOM,
     DOOM2,
-    DOOM_LVLS,
-    DOOM2_LVLS,
     FTP_DIR_GERMANY,
     FTP_DIR_GREECE,
     FTP_DIR_TEXAS,
@@ -53,7 +54,8 @@ from dapiwconst import (
     LVLS_MO,
     LVLS_PR,
     LVLS_SU,
-    LVLS_VZ
+    LVLS_VZ,
+    LVLS_ALL
 )
 
 #===============================================================================
@@ -64,7 +66,8 @@ class SearchFilter(object):
     """Contains methods for filtering search results."""
 
     def __init__(self):
-        """"""
+        """The init method for the SearchFilter class."""
+
         self.filters = {
             FILTER_DATE: self.date,
             FILTER_GAME: self.game,
@@ -76,7 +79,7 @@ class SearchFilter(object):
 
     def chain(self, results, *args):
         """
-        Filter given results using given chain of filters/parameters.
+        Filter given results using given chain of filters & parameters.
 
         :param results: The results to filter.
         :param *args: The filters to apply to the results.
@@ -240,6 +243,7 @@ class Downwad(object):
 
         """
         self.daw = daw
+        self.last_server = None
 
     def download(
             self, filename, file_dir, dl_folder=None, 
@@ -261,19 +265,31 @@ class Downwad(object):
         the download.
 
         """
+        if not dl_folder:
+            if self.daw.dl_folder:
+                dl_folder = self.daw.dl_folder
+            else:
+                return
+
         if server not in DL_FTP:
 
             dl_url = "%s%s%s%s" % (server, IDGAMES, file_dir, filename)
 
             wad_zip = requests.get(dl_url, stream=True)
 
+            # if newdir:
+            #     new = "%s%s" % (dl_folder, filename[:-4])
+            #     if not os.path.exists(new):
+            #         os.makedirs(new)
+            #     save_loc = "%s\%s" % (new, filename)
+            # else:
+            #     save_loc = dl_folder + filename
+
             if newdir:
-                new = "%s%s" % (dl_folder, filename[:-4])
-                if not os.path.exists(new):
-                    os.makedirs(new)
-                save_loc = "%s\%s" % (new, filename)
-            else:
-                save_loc = dl_folder + filename
+                if not os.path.exists(dl_folder):
+                    os.makedirs(dl_folder)
+
+            save_loc = dl_folder + filename
 
             with open(save_loc, "wb") as new_wad_zip:
                 for chunk in wad_zip.iter_content(chunk_size=1024): 
@@ -315,13 +331,19 @@ class Downwad(object):
         else:
             return
 
+        # if newdir:
+        #     new = "%s%s" % (dl_folder, filename[:-4])
+        #     if not os.path.exists(new):
+        #         os.makedirs(new)
+        #     save_loc = "%s\%s" % (new, filename)
+        # else:
+        #     save_loc = dl_folder + filename
+
         if newdir:
-            new = "%s%s" % (dl_folder, filename[:-4])
-            if not os.path.exists(new):
-                os.makedirs(new)
-            save_loc = "%s\%s" % (new, filename)
-        else:
-            save_loc = dl_folder + filename
+            if not os.path.exists(dl_folder):
+                os.makedirs(dl_folder)
+
+        save_loc = dl_folder + filename
 
         status = connection.retrbinary(
             "RETR %s" % (filename), open(save_loc, 'wb').write
@@ -350,7 +372,7 @@ class Downwad(object):
         """
         wad_info = self.daw.get_id(wad_id)
 
-        if wad_info.get("error"):
+        if "error" in wad_info:
             return wad_info
 
         file_dir = wad_info["dir"]
@@ -361,39 +383,6 @@ class Downwad(object):
         )
 
         return result
-
-    def filename(
-            self, filename, game=DOOM, dl_folder=None, 
-            server=DL_FTP_GERMANY, newdir=True
-        ):
-        """
-        Downloads a wad with the given filename.
-
-        :param filename: The filename of the file to download.
-        :param dl_folder: Where to download the file to.
-        :param server: Which server to download from.
-        :param newdir: Whether to make a new subdirectory for the wad, using the
-        wad's filename.
-
-        :returns: The file object, or if FTP is used, the final status of 
-        the download.
-
-        """
-        letter = filename[0].lower()
-
-        path = determine_lvl_path(filename, game)
-
-        files = self.daw.get_files(path)
-
-        if files.get("error") or files.get("warning"):
-            return files
-
-        for wad_info in files:
-            if filename in wad_info["filename"]:
-                result = self.download(
-                    filename, path, dl_folder, server, newdir
-                )
-                return result
 
     def id_list(
             self, id_list, dl_folder=None, server=DL_FTP_GERMANY, 
@@ -423,13 +412,37 @@ class Downwad(object):
                 server,
                 newdir
             )
-            if result.get("error") or result.get("warning"):
+            if "error" in result or "warning" in result:
                 errors.append(result)
             if count < list_len:
                 time.sleep(self.DL_DELAY)
 
         if errors:
             return errors
+
+    def file_path(
+        self, path, dl_folder=None, server=DL_FTP_GERMANY, 
+        newdir=True
+        ):
+        """
+        Download a wad, using the given wad info.
+
+        :param path: The full idgames path of the wad, including filename.
+        :param dl_folder: Where to download the file to.
+        :param server: Which server to download from.
+        :param newdir: Whether to a new subdirectory for the wad, using the
+        wad's filename.
+
+        :returns: The file object, or if FTP is used, the final status of 
+        the download.
+
+        """
+        wad_info = self.daw.get_file_path(path)
+
+        wad_dir = wad_info["dir"]
+        wad_filename = wad_info["filename"]
+
+        return self.download(wad_filename, wad_dir, dl_folder, server, newdir)
 
     def folder_year(
             self, year, file_dir=None, dl_folder=None, 
@@ -464,7 +477,7 @@ class Downwad(object):
                     server,
                     newdir
                 )
-                if result.get("error") or result.get("warning"):
+                if "error" in result or "warning" in result:
                     errors.append(result)
                 if count < files_len:
                     time.sleep(self.DL_DELAY)
@@ -495,12 +508,34 @@ class Downwad(object):
         return self.download(wad_filename, wad_dir, dl_folder, server, newdir)
 
 #===============================================================================
-# Random Wad
+# Other Bits & Pieces
 #===============================================================================
+
+def frange(start, stop, step, floatfix=True):
+    """
+    Returns a float range generator.
+
+    :param start: The start of the range.
+    :param stop: The end of the range.
+    :param step: How much to increment the range each step.
+    :param floatfix: This "fixes" the floats so that equality checks work.
+    Why this works? I really don't know. But it does.
+
+    :yields: A float range.
+
+    """
+    r = start
+    while r < stop:
+        if floatfix:
+            yield float(str(r))
+        else:
+            yield r
+        r += step
 
 def random_wad(daw, game=None):
     """
-    Returns the info from a random wad for a given game.
+    Gets the info for a random wad for a given game, or a random game if
+    none is given.
 
     :param daw: An instance of DAPIWrap.
     :param game: The game to get a random wad for.
@@ -508,27 +543,29 @@ def random_wad(daw, game=None):
     :returns: The info for a random wad.
 
     """
-    games = {
-        DOOM: DOOM_LVLS,
-        DOOM2: DOOM2_LVLS
-    }
-
     if not game:
-        game = random.choice(games.keys())
-
-    path = random.choice(games[game])
-
+        game = random.choice(GAMES)
+    path = random.choice(LVLS_ALL) % (game)
     files = daw.get_files(path)
 
     return random.choice(files)
 
-#===============================================================================
-# Wad Info Printer
-#===============================================================================
+def trunc_rating(rating, places=1):
+    """
+    Truncates the wad ratings to a given number of decimal places.
+
+    :param places: The number of decimal places to truncate to.
+
+    """
+    _rating = str(rating).split(".")
+    _rating[1] = _rating[1][0:places]
+    _rating = float(".".join(_rating))
+
+    return _rating
 
 def print_wad_info(wad_info):
     """
-    Prints out the given wad info in a more readable way.
+    Prints out the given wad info to the console, in a more readable way.
 
     :param wad_info: The wad info, in dict (JSON) form, to print.
 
@@ -544,88 +581,96 @@ def print_wad_info(wad_info):
             print "".join(wad_info[key])
             print    
 
-#===============================================================================
-# Determine Level Path
-#===============================================================================
-
-def determine_lvl_path(filename, game):
+def open_url(wad_info):
     """
-    Determines the file path, in the /idgames levels directory, using the given 
-    filename, and game.
+    Opens the page for the wad on the Doomworld idgames archive.
 
-    :param filename: The filename to determine the level path for.
-    :param game: The wad info, in dict (JSON) form, to print.
+    :param wad_info: The wad info to extract the url from.
 
-    :returns: The path, in levels, of the given filename and game.
+    :returns: None
 
     """
-    letter = filename[0].lower()
-    alpha = string.ascii_lowercase
+    webbrowser.open(wad_info["url"])
 
-    if letter.isdigit():
-        path = LVLS_09 % (game)
-    elif letter in alpha[0:3]:
-        path = LVLS_AC % (game)
-    elif letter in alpha[3:6]:
-        path = LVLS_DF % (game)
-    elif letter in alpha[6:9]:
-        path = LVLS_GI % (game)
-    elif letter in alpha[9:12]:
-        path = LVLS_JL % (game)
-    elif letter in alpha[12:15]:
-        path = LVLS_MO % (game)
-    elif letter in alpha[15:18]:
-        path = LVLS_PR % (game)
-    elif letter in alpha[18:21]:
-        path = LVLS_SU % (game)
-    elif letter in alpha[21:]:
-        path = LVLS_VZ % (game)
+def open_id_list(filename=None):
+    """    
+    Opens a txt file of ID numbers.
+
+    :param filename: The filename of the file to be opened.
+
+    :returns: A list of the ID numbers.
+
+    """
+    if not filename:
+        filename = raw_input("Filename: ")
+        if filename == "":
+            filename = "temp.txt"
+
+    with open(filename, "r") as id_file:
+        id_list = id_file.read()
+        id_list = id_list.split(", ")
+        id_list = [int(x) for x in id_list]
+        # print id_list
+    
+    return id_list
+    
+def open_json(filename, zipped=True):
+    """    
+    Opens JSON data.
+
+    :param filename: The filename of the file to be opened.
+    :param zipped: Whether or not the file is gzipped.
+
+    :returns: The JSON data.
+
+    """
+    if zipped:
+        json_gzip = gzip.open(filename, 'rb')
+        json_gzip = json.loads(json_gzip.read())
+        return json_gzip
     else:
-        return
+        with open(filename, "r") as json_file:
+            return json.load(json_file)
 
-    return path
-
-#===============================================================================
-# Rating Stuff
-#===============================================================================
-
-def trunc_rating(rating, places=1):
+def save_id_list(id_list, filename=None):
     """
-    Truncates the wad ratings to a given number of decimal places.
+    Saved a txt file of ID numbers.
 
-    :param places: The number of decimal places to truncate to.
+    :param filename: The filename of the file to be saved.
+
+    :returns: The closed file object.
 
     """
-    _rating = str(rating).split(".")
-    _rating[1] = _rating[1][0:places]
-    _rating = float(".".join(_rating))
+    if not filename:
+        filename = raw_input("Filename: ")
+        if filename == "":
+            filename = "temp.txt"
 
-    return _rating
+    with open(filename, "w") as id_file:
+        str_ids = [str(x) for x in id_list]
+        id_file.write(", ".join(str_ids))
+    
+    return id_file
 
-#===============================================================================
-# Float Range
-#===============================================================================
-
-def frange(start, stop, step, floatfix=True, rettype=float):
+def save_json(data, filename, zipped=True):
     """
-    Returns a float range generator.
+    Opens JSON data.
 
-    :param start: The start of the range.
-    :param stop: The end of the range.
-    :param step: How much to increment the range each step.
-    :param floatfix: This just "fixes" the floats so that equality checks work.
+    :param filename: The filename of the file to be saved.
+    :param zipped: Whether or not to gzip the data.
+
+    :returns: The closed JSON file object.
 
     """
-    r = start
-    while r < stop:
-        if rettype != str:
-            if floatfix:
-                yield float(str(r))
-            else:
-                yield r
-        else:
-            yield str(r)
-        r += step
+    if zipped:
+        json_gzip = gzip.open(filename, 'wb')
+        json_gzip.write(json.dumps(data))
+        return json_gzip 
+    else:
+        with open(filename, "w") as json_file:
+            return json.dump(data, json_file)
+
+    return json_file
 
 #===============================================================================
 # If Main

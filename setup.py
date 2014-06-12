@@ -9,7 +9,7 @@ def readme():
 
 setup(
     name='DAPIWrap',
-    version='0.1.0',
+    version='0.2.0',
     author='Alex Crawford',
     author_email='trebek604@gmail.com',
     packages=['dapiwrap'],
@@ -25,7 +25,10 @@ setup(
         'Operating System :: Microsoft :: Windows',
         'Topic :: Internet'
     ],
-    keywords='Doomworld idgames archive API Wrapper interface',
+    keywords=(
+        'Doomworld idgames archive API wrapper interface' 
+        'Doom Heretic Hexen Strife game'
+    ),
     install_requires=[
         "requests"
     ],
