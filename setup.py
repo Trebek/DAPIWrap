@@ -9,9 +9,9 @@ def readme():
 
 setup(
     name='DAPIWrap',
-    version='0.2.0',
+    version='0.3.0',
     author='Alex Crawford',
-    author_email='trebek604@gmail.com',
+    author_email='kebert406@yahoo.com',
     packages=['dapiwrap'],
     scripts=[],
     url='https://github.com/Trebek/DAPIWrap',

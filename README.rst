@@ -6,6 +6,12 @@ DAPIWrap: Doomworld API Wrapper
 
 DAPIWrap is a fairly simple Python wrapper for the `Doomworld /idgames archive API`_. In addition to allowing you to access the API using Python, it also has a few added features, located in ``dapiwtools``, that aren't provided by the API, such as search filtering, and downloading functions, for downloading wads from the supported mirrors on the `Doomworld /idgames archive`_.
 
+Please don't abuse this wrapper, and hammer the Doomworld servers with it.
+
+**Note:**
+
+It seems that the maximum number of search results the API will return is 100. Unfortunately, there is nothing I can do about this. Just a limit of the API. If you are searching for something specific, you can try being a bit more specific with your search.
+
 Install/Uninstall with PIP_
 ===========================
 
@@ -74,7 +80,13 @@ Search with Parameters & Filter
 
     #!/usr/bin/env python
 
-    from dapiwrap import DAPIWrap
+    from dapiwrap import (
+        DAPIWrap,
+        DIRECT_DESC,
+        FILTER_YEAR,
+        SORT_RATING,
+        TYPE_TITLE
+    )
 
     daw = DAPIWrap()
 
@@ -199,7 +211,7 @@ Or ``[]`` (empty ``list``), if no wads were found.
 Downloading
 -----------
 
-At the moment, downloading, if through an HTTP server, returns the downloaded zip file object. If you're downloading from an FTP server, the function returns a string, with the `FTP return code`_. I'm going to have to figure out a better system.
+At the moment, downloading returns the closed file object.
 
 .. _Doomworld \/idgames archive: http://www.doomworld.com/idgames/
 .. _Doomworld \/idgames archive API: http://www.doomworld.com/idgames/api/

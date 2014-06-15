@@ -2,6 +2,22 @@
 DAPIWrap Changes
 ================
 
+v0.3.0 (15-06-2014)
+-------------------
+
+- Consolidated the loose functions, in ``dapiwtools`` into a couple of separate classes.
+    - Added the ``IOFuncs`` class, which has the methods ``open_id_list``, ``open_json``, ``save_id_list``, and ``save_json``, for saving/opening wad id lists, and JSON data (raw, or gzipped). These functions can be accessed through a ``DAPIWrap`` instance by using ``DAPIWrap.io.<method>``, where "<method>" is the chosen method.
+    - Added the ``MiscFuncs`` class, which just has some miscellaneous methods, such as ``random_wad``, ``print_wad_info``, and ``open_url``. These can be accessed through a ``DAPIWrap`` instance by using ``DAPIWrap.misc.<method>``, where "<method>" is the chosen method.
+        - Changed ``random_wad``, so that now you have to provide it with an idgames archive path, or list of paths, to retrieve a random wad from. If provided a list of paths, it will pick one random path, and get a random wad from there.
+- Added the method ``search_local`` to ``DAPIWrap``, for searching a given list of wad info items.
+    - I added this because, apparently, the Doomworld API only returns the first 100 results when searching. However, if you know the directory you want to search in, you can retrieve a ``list`` of the entire contents of a given directory, with ``DAPIWrap.get_files``, and then search through them, by feeding the ``list`` into ``DAPIWrap.search_local``, along with a search query, and any optional parameters. It works just like ``DAPIWrap.search``, except you also feed it a list of info to search through.
+    - Note though, that if you are feeding ``DAPIWrap.search_local`` a list of items retrieved by ``DAPIWrap.search`` or ``DAPIWrap.get_files``, that you can't search the credits, editors, or text files of the items, because those areas are not included in the results of those actions. They only return a brief version of each wad's info, missing those sections.
+- Changed the way the ``newdir`` argument works, for the download methods in the ``Downwad`` class, in ``dapiwtools``. 
+    - Was set up to create, and download files to a new directory of the same name as the file, if ``newdir=True``. Didn't have anything to do with whether or not the download path you were providing was a new directory. Not really the behaviour you would expect, I don't think. I had it set up that way for my own purposes. Now the ``newdir`` argument simply specifies whether or not you want ``DAPIWrap`` to create a new directory, if the given download path doesn't exist. If ``newdir=False``, and the download path you specify doesn't exist, Python will throw an ``IOError`` exception. By default, ``newdir=True``.
+    - Downloading from an FTP server now returns the closed file object, the same way downloading from an HTTP server does.
+- Fixed a misspelling in dapiwconst.
+- Fixed a few errors in the documentation.
+
 v0.2.0 (11-06-2014)
 -------------------
 

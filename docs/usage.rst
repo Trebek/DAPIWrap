@@ -1,8 +1,14 @@
-==============
-DAPIWrap Usage
-==============
+====================
+DAPIWrap Basic Usage
+====================
 
 This document demonstrates how to use the basic functions of DAPIWrap.
+
+Please don't abuse this wrapper, and hammer the Doomworld servers with it.
+
+**Note:**
+
+It seems that the maximum number of search results the API will return is 100. Unfortunately, there is nothing I can do about this. Just a limit of the API. If you are searching for something specific, you can try being a bit more specific with your search.
 
 ----------------
 
@@ -79,7 +85,7 @@ The other possible values for the parameters:
 
     TYPE_AUTHOR = "author"
     TYPE_CREDITS = "credits"
-    TYPE_DECRIP = "description"
+    TYPE_DESCRIP = "description"
     TYPE_EDITORS = "editors"
     TYPE_EMAIL = "email"
     TYPE_FILE = "filename"
@@ -159,23 +165,22 @@ Search with Parameters
 
     #!/usr/bin/env python
 
-    from dapiwrap import DAPIWrap
-    from dapiwconst import (
-        TYPE_AUTHOR,
+    from dapiwrap import (
+        DAPIWrap,
+        DIRECT_DESC,
         SORT_RATING,
-        DIRECT_DESC
+        TYPE_TITLE
     )
 
     daw = DAPIWrap()
 
-    results = daw.search(
-        "BioHazard", 
-        {
-            "type": TYPE_AUTHOR,
-            "sort": SORT_RATING,
-            "dir": DIRECT_DESC
-        }
-    )
+    params = {
+        "type": TYPE_TITLE,
+        "sort": SORT_RATING,
+        "dir": DIRECT_DESC
+    }
+
+    results = daw.search("test", params)
 
 Search with Parameters & Filter
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -183,26 +188,24 @@ Search with Parameters & Filter
 
     #!/usr/bin/env python
 
-    from dapiwrap import DAPIWrap
-    from dapiwconst import (
-        TYPE_AUTHOR,
-        SORT_RATING,
+    from dapiwrap import (
+        DAPIWrap,
         DIRECT_DESC,
-        FILTER_GAME,
-        DOOM2
+        FILTER_YEAR,
+        SORT_RATING,
+        TYPE_TITLE
     )
 
     daw = DAPIWrap()
 
-    results = daw.search(
-        "BioHazard", 
-        {
-            "type": TYPE_AUTHOR,
-            "sort": SORT_RATING,
-            "dir": DIRECT_DESC,
-            "filter": (FILTER_GAME, DOOM2)
-        }
-    )
+    params = {
+        "type": TYPE_TITLE,
+        "sort": SORT_RATING,
+        "dir": DIRECT_DESC,
+        "filter": (FILTER_YEAR, 1995)
+    }
+
+    results = daw.search("test", params)
 
 ----------------
 
@@ -312,14 +315,109 @@ Download from a Specified Server
 
     #!/usr/bin/env python
 
-    from dapiwrap import DAPIWrap
-    from dapiwconst import DL_FLORIDA
+    from dapiwrap import (
+        DAPIWrap,
+        DL_FLORIDA
+    )
 
     dl_folder = "C:\\games\\doom\\wads\\"
 
     daw = DAPIWrap()
 
     daw.download.wad_id(12815, dl_folder, DL_FLORIDA)
+
+----------------
+
+Other Potentially Useful Functions
+==================================
+
+DATA IO
+-------
+
+Open JSON data
+^^^^^^^^^^^^^^
+::
+
+    #!/usr/bin/env python
+
+    from dapiwrap import DAPIWrap
+
+    daw = DAPIWrap()
+
+    filename = "results.json"
+
+    data = daw.io.open_json(filename)
+
+Save JSON data
+^^^^^^^^^^^^^^
+::
+
+    #!/usr/bin/env python
+
+    from dapiwrap import DAPIWrap
+
+    daw = DAPIWrap()
+
+    params = {
+        "sort": SORT_RATING,
+        "dir": DIRECT_DESC,
+        "filter": (FILTER_RATING, (4.0, 5.0))
+    }
+
+    results = daw.search("doom", params)
+    filename = "results.json"
+
+    daw.io.save_json(results, filename)
+
+Open Wad ID List
+^^^^^^^^^^^^^^^^
+::
+
+    #!/usr/bin/env python
+
+    from dapiwrap import DAPIWrap
+
+    daw = DAPIWrap()
+
+    filename = "results.txt"
+
+    id_list daw.io.open_id_list(filename)
+
+Save Wad ID List
+^^^^^^^^^^^^^^^^
+::
+
+    #!/usr/bin/env python
+
+    from dapiwrap import DAPIWrap
+
+    daw = DAPIWrap()
+
+    params = {
+        "sort": SORT_RATING,
+        "dir": DIRECT_DESC,
+        "filter": (FILTER_RATING, (4.0, 5.0))
+    }
+
+    results = daw.search("doom", params)
+    id_list = daw.misc.make_id_list(results)
+    filename = "results.txt"
+
+    daw.io.save_id_list(id_list, filename)
+
+Open Doomworld URL
+------------------
+::
+
+    #!/usr/bin/env python
+
+    from dapiwrap import DAPIWrap
+
+    daw = DAPIWrap()
+
+    wad_info = daw.get_id(12815)
+
+    daw.misc.open_url(wad_info)
 
 ----------------
 
@@ -404,7 +502,7 @@ Or ``[]`` (empty ``list``), if no wads were found.
 Downloading
 -----------
 
-At the moment, downloading, if through an HTTP server, returns the downloaded zip file object. If you're downloading from an FTP server, the function returns a string, with the `FTP return code`_. I'm going to have to figure out a better system.
+At the moment, downloading returns the closed file object.
 
 .. _Doomworld \/idgames archive: http://www.doomworld.com/idgames/
 .. _Doomworld \/idgames archive API: http://www.doomworld.com/idgames/api/

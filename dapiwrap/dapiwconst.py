@@ -1,8 +1,8 @@
 #===============================================================================
 # DAPIWConst Global Constants
 #-------------------------------------------------------------------------------
-# Version: 0.2.0
-# Updated: 11-06-2014
+# Version: 0.3.0
+# Updated: 15-06-2014
 # Author: Alex Crawford
 # License: MIT
 #===============================================================================
@@ -173,7 +173,7 @@ LVLS_ALL = (
 # Search types
 TYPE_AUTHOR = "author"
 TYPE_CREDITS = "credits"
-TYPE_DECRIP = "description"
+TYPE_DESCRIP = "description"
 TYPE_EDITORS = "editors"
 TYPE_EMAIL = "email"
 TYPE_FILE = "filename"

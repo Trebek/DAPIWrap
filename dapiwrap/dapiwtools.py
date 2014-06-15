@@ -1,8 +1,8 @@
 #===============================================================================
 # DAPIWTools: Useful Helper Functions for DAPIWrap.
 #-------------------------------------------------------------------------------
-# Version: 0.2.0
-# Updated: 11-06-2014
+# Version: 0.3.0
+# Updated: 15-06-2014
 # Author: Alex Crawford
 # License: MIT
 #===============================================================================
@@ -77,18 +77,21 @@ class SearchFilter(object):
             FILTER_YEAR: self.year
         }
 
-    def chain(self, results, *args):
+    def chain(self, results, filters):
         """
         Filter given results using given chain of filters & parameters.
 
         :param results: The results to filter.
-        :param *args: The filters to apply to the results.
+        :param filters: A tuple/list of filters to apply to the results.
 
         :returns: The filtered results.
 
         """
-        for arg in args:
-            results = self.filters[arg[0]](results, arg[1])
+        if filters in (tuple, list):
+            for _filter in filters:
+                results = self.filters[_filter[0]](results, _filter[1])
+        else:
+            results = self.filters[filters[0]](results, filters[1])
 
         return results
 
@@ -171,12 +174,12 @@ class SearchFilter(object):
         rating_type = type(rating)
 
         if rating_type in (tuple, list):
-            r_range = list(frange(rating[0], rating[1], 0.1))
+            r_range = list(_frange(rating[0], rating[1], 0.1))
         else:
             r_range = [rating]
 
         return [
-            x for x in results if trunc_rating(x["rating"]) in r_range
+            x for x in results if _trunc_rating(x["rating"]) in r_range
         ]
 
     def size(self, results, size=1000):
@@ -277,25 +280,17 @@ class Downwad(object):
 
             wad_zip = requests.get(dl_url, stream=True)
 
-            # if newdir:
-            #     new = "%s%s" % (dl_folder, filename[:-4])
-            #     if not os.path.exists(new):
-            #         os.makedirs(new)
-            #     save_loc = "%s\%s" % (new, filename)
-            # else:
-            #     save_loc = dl_folder + filename
-
             if newdir:
                 if not os.path.exists(dl_folder):
                     os.makedirs(dl_folder)
 
             save_loc = dl_folder + filename
 
-            with open(save_loc, "wb") as new_wad_zip:
+            with open(save_loc, "wb") as wad_file:
                 for chunk in wad_zip.iter_content(chunk_size=1024): 
                     if chunk:
-                        new_wad_zip.write(chunk)
-            return wad_zip
+                        wad_file.write(chunk)
+            return wad_file
         else:
             return self.ftp_download(
                 filename, file_dir, dl_folder, server, newdir
@@ -331,27 +326,19 @@ class Downwad(object):
         else:
             return
 
-        # if newdir:
-        #     new = "%s%s" % (dl_folder, filename[:-4])
-        #     if not os.path.exists(new):
-        #         os.makedirs(new)
-        #     save_loc = "%s\%s" % (new, filename)
-        # else:
-        #     save_loc = dl_folder + filename
-
         if newdir:
             if not os.path.exists(dl_folder):
                 os.makedirs(dl_folder)
 
         save_loc = dl_folder + filename
 
-        status = connection.retrbinary(
-            "RETR %s" % (filename), open(save_loc, 'wb').write
-        )
+        with open(save_loc, 'wb') as wad_file:
+            status = connection.retrbinary(
+                "RETR %s" % (filename), wad_file.write
+            )
+            connection.quit()
 
-        connection.quit()
-
-        return status
+        return wad_file
 
     def wad_id(
             self, wad_id, dl_folder=None, server=DL_FTP_GERMANY, 
@@ -508,10 +495,179 @@ class Downwad(object):
         return self.download(wad_filename, wad_dir, dl_folder, server, newdir)
 
 #===============================================================================
+# Misc. Functions Class
+#===============================================================================
+
+class MiscFuncs(object):
+    """A class with some miscellaneous methods that may be useful."""
+    
+    def __init__(self, daw):
+        """
+        The init method for the MiscFuncs class.
+
+        :param daw: An instance of DAPIWrap. Requires this, as this class
+        makes use of some of DAPIWrap's functionality.
+
+        """
+        self.DAW = daw
+
+    def random_wad(self, path=None):
+        """
+        Gets the info for a random wad for a given game, or a random game if
+        none is given. It's possible that this may return nothing.
+
+        :param path: The idgames directory to retrieve a random wad from.
+
+        :returns: The info for a random wad.
+
+        """
+        if type(path) in (tuple, list):
+            path = random.choice(path)
+
+        files = self.DAW.get_files(path)
+
+        return random.choice(files)
+
+    @staticmethod
+    def print_wad_info(wad_info):
+        """
+        Prints out the given wad info to the console, in a more readable way.
+
+        :param wad_info: The wad info, in dict (JSON) form, to print.
+
+        :returns: None.
+
+        """
+        for key in sorted(wad_info):
+            if key != "textfile":
+                print "%s: %s" % (key, wad_info[key])
+            else:
+                print
+                print "Textfile: \n"
+                print "".join(wad_info[key])
+                print    
+
+    @staticmethod
+    def open_url(wad_info):
+        """
+        Opens the page for the wad on the Doomworld idgames archive.
+
+        :param wad_info: The wad info to extract the url from.
+
+        :returns: None
+
+        """
+        webbrowser.open(wad_info["url"])
+
+    @staticmethod
+    def make_id_list(wad_list):
+        """
+        Takes a list of wad info items, and returns a list of their IDs.
+
+        :param wad_list: A list of wad info items.
+
+        :returns: A list of wad IDs.
+
+        """
+
+        return [x["id"] for x in wad_list]
+
+#===============================================================================
+# IO Functions Class
+#===============================================================================
+
+class IOFuncs(object):
+    """A class with methods for saving/opening wad id lists, and JSON data."""
+
+    @staticmethod
+    def open_id_list(filename=None):
+        """    
+        Opens a txt file of ID numbers.
+
+        :param filename: The filename of the file to be opened.
+
+        :returns: A list of the ID numbers.
+
+        """
+        if not filename:
+            filename = raw_input("Filename: ")
+            if filename == "":
+                filename = "temp.txt"
+
+        with open(filename, "r") as id_file:
+            id_list = id_file.read()
+            id_list = id_list.split(", ")
+            id_list = [int(x) for x in id_list]
+            # print id_list
+        
+        return id_list
+
+    @staticmethod        
+    def open_json(filename, zipped=False):
+        """    
+        Opens JSON data.
+
+        :param filename: The filename of the file to be opened.
+        :param zipped: Whether or not the file is gzipped.
+
+        :returns: The JSON data.
+
+        """
+        if zipped:
+            json_gzip = gzip.open(filename, 'rb')
+            json_gzip = json.loads(json_gzip.read())
+            return json_gzip
+        else:
+            with open(filename, "r") as json_file:
+                return json.load(json_file)
+
+    @staticmethod
+    def save_id_list(id_list, filename=None):
+        """
+        Saved a txt file of ID numbers.
+
+        :param filename: The filename of the file to be saved.
+
+        :returns: The closed file object.
+
+        """
+        if not filename:
+            filename = raw_input("Filename: ")
+            if filename == "":
+                filename = "temp.txt"
+
+        with open(filename, "w") as id_file:
+            str_ids = [str(x) for x in id_list]
+            id_file.write(", ".join(str_ids))
+        
+        return id_file
+
+    @staticmethod
+    def save_json(data, filename, zipped=False):
+        """
+        Opens JSON data.
+
+        :param filename: The filename of the file to be saved.
+        :param zipped: Whether or not to gzip the data.
+
+        :returns: The closed JSON file object.
+
+        """
+        if zipped:
+            json_gzip = gzip.open(filename, 'wb')
+            json_gzip.write(json.dumps(data))
+            return json_gzip 
+        else:
+            with open(filename, "w") as json_file:
+                return json.dump(data, json_file)
+
+        return json_file
+
+#===============================================================================
 # Other Bits & Pieces
 #===============================================================================
 
-def frange(start, stop, step, floatfix=True):
+def _frange(start, stop, step, floatfix=True):
     """
     Returns a float range generator.
 
@@ -532,25 +688,7 @@ def frange(start, stop, step, floatfix=True):
             yield r
         r += step
 
-def random_wad(daw, game=None):
-    """
-    Gets the info for a random wad for a given game, or a random game if
-    none is given.
-
-    :param daw: An instance of DAPIWrap.
-    :param game: The game to get a random wad for.
-
-    :returns: The info for a random wad.
-
-    """
-    if not game:
-        game = random.choice(GAMES)
-    path = random.choice(LVLS_ALL) % (game)
-    files = daw.get_files(path)
-
-    return random.choice(files)
-
-def trunc_rating(rating, places=1):
+def _trunc_rating(rating, places=1):
     """
     Truncates the wad ratings to a given number of decimal places.
 
@@ -562,115 +700,6 @@ def trunc_rating(rating, places=1):
     _rating = float(".".join(_rating))
 
     return _rating
-
-def print_wad_info(wad_info):
-    """
-    Prints out the given wad info to the console, in a more readable way.
-
-    :param wad_info: The wad info, in dict (JSON) form, to print.
-
-    :returns: None.
-
-    """
-    for key in sorted(wad_info):
-        if key != "textfile":
-            print "%s: %s" % (key, wad_info[key])
-        else:
-            print
-            print "Textfile: \n"
-            print "".join(wad_info[key])
-            print    
-
-def open_url(wad_info):
-    """
-    Opens the page for the wad on the Doomworld idgames archive.
-
-    :param wad_info: The wad info to extract the url from.
-
-    :returns: None
-
-    """
-    webbrowser.open(wad_info["url"])
-
-def open_id_list(filename=None):
-    """    
-    Opens a txt file of ID numbers.
-
-    :param filename: The filename of the file to be opened.
-
-    :returns: A list of the ID numbers.
-
-    """
-    if not filename:
-        filename = raw_input("Filename: ")
-        if filename == "":
-            filename = "temp.txt"
-
-    with open(filename, "r") as id_file:
-        id_list = id_file.read()
-        id_list = id_list.split(", ")
-        id_list = [int(x) for x in id_list]
-        # print id_list
-    
-    return id_list
-    
-def open_json(filename, zipped=True):
-    """    
-    Opens JSON data.
-
-    :param filename: The filename of the file to be opened.
-    :param zipped: Whether or not the file is gzipped.
-
-    :returns: The JSON data.
-
-    """
-    if zipped:
-        json_gzip = gzip.open(filename, 'rb')
-        json_gzip = json.loads(json_gzip.read())
-        return json_gzip
-    else:
-        with open(filename, "r") as json_file:
-            return json.load(json_file)
-
-def save_id_list(id_list, filename=None):
-    """
-    Saved a txt file of ID numbers.
-
-    :param filename: The filename of the file to be saved.
-
-    :returns: The closed file object.
-
-    """
-    if not filename:
-        filename = raw_input("Filename: ")
-        if filename == "":
-            filename = "temp.txt"
-
-    with open(filename, "w") as id_file:
-        str_ids = [str(x) for x in id_list]
-        id_file.write(", ".join(str_ids))
-    
-    return id_file
-
-def save_json(data, filename, zipped=True):
-    """
-    Opens JSON data.
-
-    :param filename: The filename of the file to be saved.
-    :param zipped: Whether or not to gzip the data.
-
-    :returns: The closed JSON file object.
-
-    """
-    if zipped:
-        json_gzip = gzip.open(filename, 'wb')
-        json_gzip.write(json.dumps(data))
-        return json_gzip 
-    else:
-        with open(filename, "w") as json_file:
-            return json.dump(data, json_file)
-
-    return json_file
 
 #===============================================================================
 # If Main

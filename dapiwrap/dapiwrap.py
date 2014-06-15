@@ -1,8 +1,8 @@
 #===============================================================================
 # DAPIWrap: Doomworld API Wrapper
 #-------------------------------------------------------------------------------
-# Version: 0.2.0
-# Updated: 11-06-2014
+# Version: 0.3.0
+# Updated: 15-06-2014
 # Author: Alex Crawford
 # License: MIT
 #===============================================================================
@@ -61,6 +61,9 @@ from dapiwconst import (
     A_SEARCH_TYPE,
     A_OUT_JSON,
     API_URL,
+    DIRECT_ASC,
+    DIRECT_DESC,
+    SORT_DATE,
     TYPE_AUTHOR,
     TYPE_CREDITS,
     TYPE_DESCRIP,
@@ -73,6 +76,8 @@ from dapiwconst import (
 
 from dapiwtools import (
     Downwad,
+    IOFuncs,
+    MiscFuncs,
     SearchFilter
 )
 
@@ -102,9 +107,11 @@ class DAPIWrap(object):
         """
         self.dl_folder = dl_folder
 
-        # DAPIWrap tools
+        # DAPIWrap "tools".
         self.download = Downwad(self)
         self.filter = SearchFilter()
+        self.io = IOFuncs()
+        self.misc = MiscFuncs(self)
 
     def about(self):
         """
@@ -349,26 +356,26 @@ class DAPIWrap(object):
         ``params`` can be one, or one of each of these keys/values:
 
         :param type: The type of search (what field your searching in).
-            Accepted Values:
-                TYPE_AUTHOR, TYPE_CREDITS, TYPE_DECRIP, TYPE_EDITORS,
-                TYPE_EMAIL, TYPE_FILE, TYPE_TEXT, TYPE_TITLE            
+            |Accepted Values:
+            |TYPE_AUTHOR, TYPE_CREDITS, TYPE_DESCRIP, TYPE_EDITORS,
+            |TYPE_EMAIL, TYPE_FILE, TYPE_TEXT, TYPE_TITLE            
         :param sort: What to sort the results by.
-            Accepted Values:
-                SORT_DATE, SORT_FILE, SORT_RATING, SORT_SIZE
+            |Accepted Values:
+            |SORT_DATE, SORT_FILE, SORT_RATING, SORT_SIZE
         :param dir: The direction to order the results.
-            Accepted Values:
-                DIRECT_ASC, DIRECT_DESC
+            |Accepted Values:
+            |DIRECT_ASC, DIRECT_DESC
         :param filter: A filter, or filters (in a tuple/list) to apply to 
             the results. If you are using filters, you must also provide values 
             for the filters, and package them both into a tuple, or list. For 
             example, if you wanted to filter by year - 1994 in this case - you 
             would use this as a value for filter: 
-                (FILTER_YEAR, 1994)
+            |(FILTER_YEAR, 1994)
             If you wanted to use more than one filter, in this case by year 
             and game, you would use this:
-                ((FILTER_YEAR, 1994), (FILTER_GAME, DOOM))
+            |((FILTER_YEAR, 1994), (FILTER_GAME, DOOM))
             Accepted Values:
-                FILTER_GAME, FILTER_GYR, FILTER_YEAR, FILTER_RATING
+            |FILTER_GAME, FILTER_GYR, FILTER_YEAR, FILTER_RATING
 
         :returns: A list of search results.
 
@@ -483,6 +490,58 @@ class DAPIWrap(object):
         else:
             params["type"] = TYPE_EMAIL
             return self.search(query, params)
+
+    def search_local(self, items, query, params={}):
+        """        
+        Search the given items. Can't search the credits, editors, or textfiles 
+        of the given items, if they were retrieved using ``DAPIWrap.search``, 
+        or ``DAPIWrap.get_files``, because these actions don't return the full 
+        info for each wad. Only a brief version, missing those areas mentioned.
+        However, if the items were retrieved using ``DAPIWrap.get_id`` or
+        ``DAPIWrap.get_file_path``, then you can search those areas as well.
+
+        :param items: A list of wad info to search through.
+        :param query: The search query.
+        :param params: A ``dict`` of search parameters and/or filters.
+
+        :returns: A list of search results.
+
+        """
+        query_lower = query.lower()
+
+        srchtype = params.get("type")
+        srchsort = params.get("sort")
+        srchdir = params.get("dir")
+        srchfilters = params.get("filter")
+
+        # Set up default search parameters, if none given.
+        if not srchtype:
+            srchtype = TYPE_FILE
+        if not srchsort:
+            srchsort = SORT_DATE
+        if not srchdir:
+            srchdir = DIRECT_ASC
+
+        # Search through given items, build a list of results.
+        try:
+            local_results = [
+                x for x in items if query_lower in x[srchtype].lower()
+            ]
+        except AttributeError:
+            pass
+
+        # Filter the results, if called for.
+        if srchfilters:
+            local_results = self.filter.chain(local_results, srchfilters)
+
+        # Sort the results.
+        local_results = sorted(local_results, key=lambda x: x[srchsort])
+
+        # Reverse the results order, if called for.
+        if srchdir == DIRECT_DESC:
+            return local_results[::-1]
+        else:
+            return local_results
 
     def search_text(self, query, params={}):
         """
